@@ -1,60 +1,75 @@
 function showLogin() {
-    document.getElementById('register-form').style.display = 'none';
-    document.getElementById('login-form').style.display = 'block';
-    document.getElementById('error-message').style.display = 'none';
+    document.getElementById('register').style.display = 'none';
+    document.getElementById('login').style.display = 'block';
+    document.getElementById('two-factor-setup').style.display = 'none';
 }
 
 function showRegister() {
-    document.getElementById('login-form').style.display = 'none';
-    document.getElementById('register-form').style.display = 'block';
+    document.getElementById('register').style.display = 'block';
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('two-factor-setup').style.display = 'none';
 }
 
 async function register() {
     const phone = document.getElementById('reg-phone').value;
     const password = document.getElementById('reg-password').value;
-    const referralCode = document.getElementById('reg-referral').value;
+    const referralCode = document.getElementById('referral-code').value;
+    const error = document.getElementById('reg-error');
 
     if (!phone || !password || !referralCode) {
-        alert('सभी फील्ड्स भरें');
+        error.textContent = 'सभी फील्ड्स भरें';
         return;
     }
 
-    const response = await fetch('http://localhost:3000/register', {
+    const response = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone, password, referralCode })
     });
     const data = await response.json();
-    alert(data.message);
+
     if (response.ok) {
+        error.textContent = '';
         showLogin();
+    } else {
+        error.textContent = data.message;
     }
 }
 
 async function login() {
     const phone = document.getElementById('login-phone').value;
     const password = document.getElementById('login-password').value;
-    const errorMessage = document.getElementById('error-message');
+    const twoFactorCode = document.getElementById('two-factor-code').value;
+    const error = document.getElementById('login-error');
 
     if (!phone || !password) {
-        errorMessage.textContent = 'फोन नंबर और पासवर्ड भरें';
-        errorMessage.style.display = 'block';
+        error.textContent = 'फोन नंबर और पासवर्ड भरें';
         return;
     }
 
-    const response = await fetch('http://localhost:3000/login', {
+    const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
+        body: JSON.stringify({ phone, password, twoFactorCode })
     });
     const data = await response.json();
 
     if (response.ok) {
-        errorMessage.style.display = 'none';
-        alert('लॉगिन सफल');
+        error.textContent = '';
         window.location.href = '/dashboard.html';
     } else {
-        errorMessage.textContent = data.message;
-        errorMessage.style.display = 'block';
+        error.textContent = data.message;
+    }
+}
+
+async function show2FASetup() {
+    document.getElementById('register').style.display = 'none';
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('two-factor-setup').style.display = 'block';
+
+    const response = await fetch('/api/generate-2fa');
+    const data = await response.json();
+    if (response.ok) {
+        document.getElementById('qr-code').src = data.qrCode;
     }
 }

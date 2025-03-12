@@ -1,0 +1,34 @@
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
+const User = require('../models/User');
+require('../db');
+module.exports = async (req, res) => {
+    try {
+        const { phone, password } = req.body;
+        console.log('लॉगिन शुरू:', { phone, password });
+
+        if (!phone || !password) {
+            return res.status(400).json({ message: 'फोन नंबर और पासवर्ड भरें' });
+        }
+
+        const user = await User.findOne({ phone });
+        if (!user) {
+            console.log('यूज़र नहीं मिला:', phone);
+            return res.status(401).json({ message: 'यह फोन नंबर रजिस्टर्ड नहीं है' });
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            console.log('पासवर्ड गलत:', phone);
+            return res.status(401).json({ message: 'गलत पासवर्ड' });
+        }
+
+        req.session.userId = user._id;
+        console.log('लॉगिन सफल:', user.phone);
+        res.status(200).json({ message: 'लॉगिन सफल' });
+    } catch (error) {
+        console.error('लॉगिन में त्रुटि:', error);
+        res.status(500).json({ message: 'सर्वर में त्रुटि' });
+    }
+};

@@ -295,6 +295,39 @@ app.post('/admin/recharge/:id/cancel', isAdmin, async (req, res) => {
     res.json({ message: 'रिचार्ज रद्द, राशि वापस की गई' });
 });
 
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const session = require('express-session');
+const cors = require('cors'); // CORS जोड़ा
+require('dotenv').config();
+
+const app = express();
+
+// CORS Middleware
+app.use(cors({
+    origin: 'https://referral-recharge-6421.vercel.app', // Vercel URL की अनुमति
+    credentials: true
+}));
+
+// Middleware
+app.use(express.static('public'));
+app.use(bodyParser.json());
+app.use(session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
+}));
+
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log('MongoDB से कनेक्ट हो गया'))
+    .catch(err => console.error('MongoDB कनेक्शन में त्रुटि:', err));
+
+// बाकी कोड वही (UserSchema, RechargeRequestSchema, CounterSchema, रजिस्ट्रेशन, लॉगिन, आदि)
+
 app.listen(3000, () => {
     console.log('सर्वर 3000 पर चल रहा है');
 });

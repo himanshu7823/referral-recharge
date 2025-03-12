@@ -11,6 +11,7 @@
         <h1>डैशबोर्ड</h1>
         <p>फोन नंबर: <span id="phone"></span></p>
         <p>कमीशन लेवल: 25, 15, 10, 5, 4, 3, 2, 1 रुपये</p>
+        <p>2FA स्थिति: <span id="two-factor-status">बंद</span></p>
 
         <div id="activation" style="display: none;">
             <p><a href="https://upilinks.in/payment-link/upi2039309601#google_vignette" target="_blank">100 रुपये देकर ID एक्टिवेट करें</a></p>
@@ -45,10 +46,11 @@
 
     <script>
         async function loadDashboard() {
-            const response = await fetch('http://localhost:3000/dashboard-data');
+            const response = await fetch('/api/dashboard-data');
             const data = await response.json();
             if (response.ok) {
                 document.getElementById('phone').textContent = data.phone;
+                document.getElementById('two-factor-status').textContent = data.twoFactorEnabled ? 'चालू' : 'बंद';
                 if (data.activated) {
                     document.getElementById('dashboard-info').style.display = 'block';
                     document.getElementById('wallet-balance').textContent = data.walletBalance;
@@ -66,7 +68,7 @@
         }
 
         async function loadRechargeRequests() {
-            const response = await fetch('http://localhost:3000/recharge-requests');
+            const response = await fetch('/api/recharge-requests');
             const requests = await response.json();
             const rechargeDiv = document.getElementById('recharge-requests');
             rechargeDiv.innerHTML = '';
@@ -88,7 +90,7 @@
                 return;
             }
 
-            const response = await fetch('http://localhost:3000/activate', {
+            const response = await fetch('/api/activate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ utrNumber })
@@ -110,7 +112,7 @@
                 return;
             }
 
-            const response = await fetch('http://localhost:3000/recharge', {
+            const response = await fetch('/api/recharge', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mobileNumber, simCard, amount })
