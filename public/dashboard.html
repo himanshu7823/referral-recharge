@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>डैशबोर्ड</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>डैशबोर्ड</h1>
+        <p>फोन नंबर: <span id="phone"></span></p>
+        <p>कमीशन लेवल: 25, 15, 10, 5, 4, 3, 2, 1 रुपये</p>
+
+        <div id="activation" style="display: none;">
+            <p><a href="https://upilinks.in/payment-link/upi2039309601#google_vignette" target="_blank">100 रुपये देकर ID एक्टिवेट करें</a></p>
+            <input type="text" id="utr-number" placeholder="UTR नंबर">
+            <button onclick="activate()">एक्टिवेट करें</button>
+        </div>
+
+        <div id="pending" style="display: none;">
+            <p>एक्टिवेशन रिक्वेस्ट लंबित है, एडमिन अप्रूवल का इंतजार करें।</p>
+        </div>
+
+        <div id="dashboard-info" style="display: none;">
+            <p>वॉलेट बैलेंस: <span id="wallet-balance">0</span> रुपये</p>
+            <p>आपका रेफर कोड: <span id="referral-code"></span></p>
+            <h2>मोबाइल रिचार्ज</h2>
+            <input type="text" id="mobile-number" placeholder="मोबाइल नंबर">
+            <select id="sim-card">
+                <option value="Jio">Jio</option>
+                <option value="Airtel">Airtel</option>
+                <option value="Vi">Vi</option>
+                <option value="BSNL">BSNL</option>
+            </select>
+            <input type="number" id="recharge-amount" placeholder="रिचार्ज राशि">
+            <button onclick="sendRecharge()">रिचार्ज रिक्वेस्ट भेजें</button>
+            <p>रिचार्ज रिक्वेस्ट भेजने के बाद ज्यादा से ज्यादा 12 घंटे का समय लग सकता है।</p>
+            <h2>रिचार्ज स्थिति</h2>
+            <div id="recharge-requests"></div>
+        </div>
+
+        <button onclick="window.location.href='/'">लॉगआउट</button>
+    </div>
+
+    <script>
+        async function loadDashboard() {
+            const response = await fetch('http://localhost:3000/dashboard-data');
+            const data = await response.json();
+            if (response.ok) {
+                document.getElementById('phone').textContent = data.phone;
+                if (data.activated) {
+                    document.getElementById('dashboard-info').style.display = 'block';
+                    document.getElementById('wallet-balance').textContent = data.walletBalance;
+                    document.getElementById('referral-code').textContent = data.referralCode;
+                    loadRechargeRequests();
+                } else if (data.activationPending) {
+                    document.getElementById('pending').style.display = 'block';
+                } else {
+                    document.getElementById('activation').style.display = 'block';
+                }
+            } else {
+                alert(data.message);
+                window.location.href = '/';
+            }
+        }
+
+        async function loadRechargeRequests() {
+            const response = await fetch('http://localhost:3000/recharge-requests');
+            const requests = await response.json();
+            const rechargeDiv = document.getElementById('recharge-requests');
+            rechargeDiv.innerHTML = '';
+            requests.forEach(req => {
+                const status = req.status === 'pending' ? 'लंबित' : req.status === 'successful' ? 'सफल' : 'रद्द';
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <p>नंबर: ${req.mobileNumber} | सिम: ${req.simCard} | राशि: ${req.amount} | स्थिति: ${status}</p>
+                    <hr>
+                `;
+                rechargeDiv.appendChild(div);
+            });
+        }
+
+        async function activate() {
+            const utrNumber = document.getElementById('utr-number').value;
+            if (!utrNumber) {
+                alert('UTR नंबर भरें');
+                return;
+            }
+
+            const response = await fetch('http://localhost:3000/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ utrNumber })
+            });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                window.location.reload();
+            }
+        }
+
+        async function sendRecharge() {
+            const mobileNumber = document.getElementById('mobile-number').value;
+            const simCard = document.getElementById('sim-card').value;
+            const amount = parseInt(document.getElementById('recharge-amount').value);
+
+            if (!mobileNumber || !amount) {
+                alert('मोबाइल नंबर और राशि भरें');
+                return;
+            }
+
+            const response = await fetch('http://localhost:3000/recharge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobileNumber, simCard, amount })
+            });
+            const data = await response.json();
+            alert(data.message);
+            if (response.ok) {
+                window.location.reload();
+            }
+        }
+
+        window.onload = loadDashboard;
+    </script>
+</body>
+</html>

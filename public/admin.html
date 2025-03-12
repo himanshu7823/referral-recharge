@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>एडमिन डैशबोर्ड</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="admin-login" style="display: block;">
+            <h1>एडमिन लॉगिन</h1>
+            <input type="text" id="admin-username" placeholder="यूज़रनेम">
+            <input type="password" id="admin-password" placeholder="पासवर्ड">
+            <button onclick="adminLogin()">लॉगिन करें</button>
+            <p id="admin-error" style="color: red; text-align: center;"></p>
+        </div>
+
+        <div id="admin-dashboard" style="display: none;">
+            <h1>एडमिन डैशबोर्ड</h1>
+            <button onclick="logout()">लॉगआउट</button>
+
+            <h2>एक्टिवेशन रिक्वेस्ट्स</h2>
+            <div id="activation-requests"></div>
+
+            <h2>रिचार्ज रिक्वेस्ट्स</h2>
+            <div id="recharge-requests"></div>
+        </div>
+    </div>
+
+    <script>
+        async function adminLogin() {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            const error = document.getElementById('admin-error');
+
+            if (!username || !password) {
+                error.textContent = 'यूज़रनेम और पासवर्ड भरें';
+                return;
+            }
+
+            const response = await fetch('http://localhost:3000/admin/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }, // त्रुटि ठीक की गई
+                body: JSON.stringify({ username, password })
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('admin-login').style.display = 'none';
+                document.getElementById('admin-dashboard').style.display = 'block';
+                loadAdminData();
+            } else {
+                error.textContent = data.message;
+            }
+        }
+
+        async function loadAdminData() {
+            // Activation Requests
+            const activationResponse = await fetch('http://localhost:3000/admin/activations', {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const activations = await activationResponse.json();
+            const activationDiv = document.getElementById('activation-requests');
+            activationDiv.innerHTML = '';
+            if (activationResponse.ok) {
+                activations.forEach(req => {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <p>फोन: ${req.phone} | UTR: ${req.utrNumber}</p>
+                        <button onclick="approveActivation('${req._id}')">अप्रूव करें</button>
+                        <button onclick="rejectActivation('${req._id}')">रिजेक्ट करें</button>
+                        <hr>
+                    `;
+                    activationDiv.appendChild(div);
+                });
+            }
+
+            // Recharge Requests
+            const rechargeResponse = await fetch('http://localhost:3000/admin/recharges', {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const recharges = await rechargeResponse.json();
+            const rechargeDiv = document.getElementById('recharge-requests');
+            rechargeDiv.innerHTML = '';
+            if (rechargeResponse.ok) {
+                recharges.forEach(req => {
+                    if (req.status === 'pending') {
+                        const div = document.createElement('div');
+                        div.innerHTML = `
+                            <p>फोन: ${req.userId.phone} | नंबर: ${req.mobileNumber} | सिम: ${req.simCard} | राशि: ${req.amount}</p>
+                            <button onclick="approveRecharge('${req._id}')">अप्रूव करें</button>
+                            <button onclick="cancelRecharge('${req._id}')">रद्द करें</button>
+                            <hr>
+                        `;
+                        rechargeDiv.appendChild(div);
+                    }
+                });
+            }
+        }
+
+        async function approveActivation(id) {
+            const response = await fetch(`http://localhost:3000/admin/activate/${id}/approve`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            alert(data.message);
+            loadAdminData();
+        }
+
+        async function rejectActivation(id) {
+            const response = await fetch(`http://localhost:3000/admin/activate/${id}/reject`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            alert(data.message);
+            loadAdminData();
+        }
+
+        async function approveRecharge(id) {
+            const response = await fetch(`http://localhost:3000/admin/recharge/${id}/success`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            alert(data.message);
+            loadAdminData();
+        }
+
+        async function cancelRecharge(id) {
+            const response = await fetch(`http://localhost:3000/admin/recharge/${id}/cancel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            alert(data.message);
+            loadAdminData();
+        }
+
+        function logout() {
+            document.getElementById('admin-login').style.display = 'block';
+            document.getElementById('admin-dashboard').style.display = 'none';
+            document.getElementById('admin-username').value = '';
+            document.getElementById('admin-password').value = '';
+            document.getElementById('admin-error').textContent = '';
+        }
+    </script>
+</body>
+</html>

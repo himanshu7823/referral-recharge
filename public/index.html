@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>रेफरल रिचार्ज</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>रेफरल रिचार्ज</h1>
+
+        <div id="register-form">
+            <h2>रजिस्ट्रेशन</h2>
+            <input type="text" id="reg-phone" placeholder="फोन नंबर" required>
+            <input type="password" id="reg-password" placeholder="पासवर्ड" required>
+            <input type="text" id="reg-referral" placeholder="रेफर कोड" required>
+            <button onclick="register()">रजिस्टर करें</button>
+            <p>अकाउंट है? <a href="#" onclick="showLogin()">लॉगिन करें</a></p>
+        </div>
+
+        <div id="login-form" style="display: none;">
+            <h2>लॉगिन</h2>
+            <input type="text" id="login-phone" placeholder="फोन नंबर" required>
+            <input type="password" id="login-password" placeholder="पासवर्ड" required>
+            <button onclick="login()">लॉगिन करें</button>
+            <p>अकाउंट नहीं है? <a href="#" onclick="showRegister()">रजिस्टर करें</a></p>
+            <div id="error-message" style="color: red; text-align: center;"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
