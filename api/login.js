@@ -24,8 +24,6 @@ module.exports = async (req, res) => {
             return res.status(401).json({ message: 'गलत पासवर्ड' });
         }
 
-        // सेशन मैनेजमेंट Vercel पर सर्वरलेस फंक्शंस में अलग तरीके से करना पड़ता है
-        // अभी के लिए, हम सेशन की जगह लॉगिन सफल होने की पुष्टि करेंगे
         console.log('लॉगिन सफल:', user.phone);
         res.status(200).json({ message: 'लॉगिन सफल', userId: user._id });
     } catch (error) {
