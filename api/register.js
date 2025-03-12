@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-require('../db');
+require('../db'); // MongoDB कनेक्शन
 const User = require('../models/User');
 
 module.exports = async (req, res) => {
