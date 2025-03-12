@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const session = require('express-session');
+require('../db'); // MongoDB कनेक्शन
 const User = require('../models/User');
-require('../db');
+
 module.exports = async (req, res) => {
     try {
         const { phone, password } = req.body;
@@ -24,9 +24,10 @@ module.exports = async (req, res) => {
             return res.status(401).json({ message: 'गलत पासवर्ड' });
         }
 
-        req.session.userId = user._id;
+        // सेशन मैनेजमेंट Vercel पर सर्वरलेस फंक्शंस में अलग तरीके से करना पड़ता है
+        // अभी के लिए, हम सेशन की जगह लॉगिन सफल होने की पुष्टि करेंगे
         console.log('लॉगिन सफल:', user.phone);
-        res.status(200).json({ message: 'लॉगिन सफल' });
+        res.status(200).json({ message: 'लॉगिन सफल', userId: user._id });
     } catch (error) {
         console.error('लॉगिन में त्रुटि:', error);
         res.status(500).json({ message: 'सर्वर में त्रुटि' });

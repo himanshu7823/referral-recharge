@@ -19,18 +19,23 @@ async function register() {
         return;
     }
 
-    const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password, referralCode })
-    });
-    const data = await response.json();
+    try {
+        const response = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password, referralCode })
+        });
+        const data = await response.json();
 
-    if (response.ok) {
-        error.textContent = '';
-        showLogin();
-    } else {
-        error.textContent = data.message;
+        if (response.ok) {
+            error.textContent = '';
+            localStorage.setItem('userId', data.userId); // userId स्टोर करें
+            showLogin();
+        } else {
+            error.textContent = data.message;
+        }
+    } catch (error) {
+        error.textContent = 'रजिस्ट्रेशन में त्रुटि: ' + error.message;
     }
 }
 
@@ -44,17 +49,22 @@ async function login() {
         return;
     }
 
-    const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password })
-    });
-    const data = await response.json();
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password })
+        });
+        const data = await response.json();
 
-    if (response.ok) {
-        error.textContent = '';
-        window.location.href = '/dashboard.html';
-    } else {
-        error.textContent = data.message;
+        if (response.ok) {
+            error.textContent = '';
+            localStorage.setItem('userId', data.userId); // userId स्टोर करें
+            window.location.href = '/dashboard.html';
+        } else {
+            error.textContent = data.message;
+        }
+    } catch (error) {
+        error.textContent = 'लॉगिन में त्रुटि: ' + error.message;
     }
 }

@@ -40,63 +40,85 @@
             <div id="recharge-requests"></div>
         </div>
 
-        <button onclick="window.location.href='/'">लॉगआउट</button>
+        <button onclick="logout()">लॉगआउट</button>
     </div>
 
     <script>
         async function loadDashboard() {
-            const response = await fetch('/api/dashboard-data');
-            const data = await response.json();
-            if (response.ok) {
-                document.getElementById('phone').textContent = data.phone;
-                if (data.activated) {
-                    document.getElementById('dashboard-info').style.display = 'block';
-                    document.getElementById('wallet-balance').textContent = data.walletBalance;
-                    document.getElementById('referral-code').textContent = data.referralCode;
-                    loadRechargeRequests();
-                } else if (data.activationPending) {
-                    document.getElementById('pending').style.display = 'block';
+            const userId = localStorage.getItem('userId');
+            if (!userId) {
+                alert('लॉगिन करें');
+                window.location.href = '/';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/dashboard-data?userId=${userId}`);
+                const data = await response.json();
+                if (response.ok) {
+                    document.getElementById('phone').textContent = data.phone;
+                    if (data.activated) {
+                        document.getElementById('dashboard-info').style.display = 'block';
+                        document.getElementById('wallet-balance').textContent = data.walletBalance;
+                        document.getElementById('referral-code').textContent = data.referralCode;
+                        loadRechargeRequests();
+                    } else if (data.activationPending) {
+                        document.getElementById('pending').style.display = 'block';
+                    } else {
+                        document.getElementById('activation').style.display = 'block';
+                    }
                 } else {
-                    document.getElementById('activation').style.display = 'block';
+                    alert(data.message);
+                    window.location.href = '/';
                 }
-            } else {
-                alert(data.message);
+            } catch (error) {
+                alert('डैशबोर्ड लोड करने में त्रुटि: ' + error.message);
                 window.location.href = '/';
             }
         }
 
         async function loadRechargeRequests() {
-            const response = await fetch('/api/recharge-requests');
-            const requests = await response.json();
-            const rechargeDiv = document.getElementById('recharge-requests');
-            rechargeDiv.innerHTML = '';
-            requests.forEach(req => {
-                const status = req.status === 'pending' ? 'लंबित' : req.status === 'successful' ? 'सफल' : 'रद्द';
-                const div = document.createElement('div');
-                div.innerHTML = `
-                    <p>नंबर: ${req.mobileNumber} | सिम: ${req.simCard} | राशि: ${req.amount} | स्थिति: ${status}</p>
-                    <hr>
-                `;
-                rechargeDiv.appendChild(div);
-            });
+            const userId = localStorage.getItem('userId');
+            try {
+                const response = await fetch(`/api/recharge-requests?userId=${userId}`);
+                const requests = await response.json();
+                const rechargeDiv = document.getElementById('recharge-requests');
+                rechargeDiv.innerHTML = '';
+                requests.forEach(req => {
+                    const status = req.status === 'pending' ? 'लंबित' : req.status === 'successful' ? 'सफल' : 'रद्द';
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <p>नंबर: ${req.mobileNumber} | सिम: ${req.simCard} | राशि: ${req.amount} | स्थिति: ${status}</p>
+                        <hr>
+                    `;
+                    rechargeDiv.appendChild(div);
+                });
+            } catch (error) {
+                console.error('रिचार्ज रिक्वेस्ट लोड करने में त्रुटि:', error);
+            }
         }
 
         async function activate() {
             const utrNumber = document.getElementById('utr-number').value;
+            const userId = localStorage.getItem('userId');
             if (!utrNumber) {
                 alert('UTR नंबर भरें');
                 return;
             }
 
-            const response = await fetch('/api/activate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ utrNumber })
-            });
-            const data = await response.json();
-            alert(data.message);
-            if (response.ok) {
-                window.location.reload();
+            try {
+                const response = await fetch('/api/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ utrNumber, userId })
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                alert('एक्टिवेशन में त्रुटि: ' + error.message);
             }
         }
 
@@ -104,22 +126,32 @@
             const mobileNumber = document.getElementById('mobile-number').value;
             const simCard = document.getElementById('sim-card').value;
             const amount = parseInt(document.getElementById('recharge-amount').value);
+            const userId = localStorage.getItem('userId');
 
             if (!mobileNumber || !amount) {
                 alert('मोबाइल नंबर और राशि भरें');
                 return;
             }
 
-            const response = await fetch('/api/recharge', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mobileNumber, simCard, amount })
-            });
-            const data = await response.json();
-            alert(data.message);
-            if (response.ok) {
-                window.location.reload();
+            try {
+                const response = await fetch('/api/recharge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobileNumber, simCard, amount, userId })
+                });
+                const data = await response.json();
+                alert(data.message);
+                if (response.ok) {
+                    window.location.reload();
+                }
+            } catch (error) {
+                alert('रिचार्ज में त्रुटि: ' + error.message);
             }
+        }
+
+        function logout() {
+            localStorage.removeItem('userId');
+            window.location.href = '/';
         }
 
         window.onload = loadDashboard;

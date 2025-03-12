@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-const User = require('../models/User');
 require('../db');
+const User = require('../models/User');
+
 module.exports = async (req, res) => {
     try {
         const { phone, password, referralCode } = req.body;
@@ -56,8 +57,7 @@ module.exports = async (req, res) => {
             }
         }
 
-        req.session.userId = savedUser._id;
-        res.status(201).json({ message: 'रजिस्ट्रेशन सफल' });
+        res.status(201).json({ message: 'रजिस्ट्रेशन सफल', userId: savedUser._id });
     } catch (error) {
         console.error('रजिस्ट्रेशन में त्रुटि:', error.message, error.stack);
         res.status(500).json({ message: 'सर्वर में त्रुटि' });
