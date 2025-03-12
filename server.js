@@ -3,9 +3,16 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
+const cors = require('cors'); // CORS पैकेज इम्पोर्ट
 require('dotenv').config();
 
 const app = express();
+
+// CORS Middleware
+app.use(cors({
+    origin: 'https://referral-recharge-6421.vercel.app', // Vercel URL की अनुमति
+    credentials: true
+}));
 
 // Middleware
 app.use(express.static('public'));
@@ -26,7 +33,7 @@ mongoose.connect(process.env.MONGODB_URI)
 const UserSchema = new mongoose.Schema({
     phone: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    referralCode: { type: String }, // unique: true हटाया गया
+    referralCode: { type: String },
     referredBy: { type: String },
     walletBalance: { type: Number, default: 0 },
     activated: { type: Boolean, default: false },
@@ -238,7 +245,7 @@ app.get('/dashboard-data', async (req, res) => {
         res.json({
             phone: user.phone,
             walletBalance: user.walletBalance,
-            referralCode: user.referralCode || 'ID:nowrap एक्टिवेट करें',
+            referralCode: user.referralCode || 'ID एक्टिवेट करें',
             activated: user.activated,
             activationPending: user.activationPending
         });
@@ -294,39 +301,6 @@ app.post('/admin/recharge/:id/cancel', isAdmin, async (req, res) => {
     await Promise.all([user.save(), request.save()]);
     res.json({ message: 'रिचार्ज रद्द, राशि वापस की गई' });
 });
-
-const express = require('express');
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const session = require('express-session');
-const cors = require('cors'); // CORS जोड़ा
-require('dotenv').config();
-
-const app = express();
-
-// CORS Middleware
-app.use(cors({
-    origin: 'https://referral-recharge-6421.vercel.app', // Vercel URL की अनुमति
-    credentials: true
-}));
-
-// Middleware
-app.use(express.static('public'));
-app.use(bodyParser.json());
-app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false }
-}));
-
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('MongoDB से कनेक्ट हो गया'))
-    .catch(err => console.error('MongoDB कनेक्शन में त्रुटि:', err));
-
-// बाकी कोड वही (UserSchema, RechargeRequestSchema, CounterSchema, रजिस्ट्रेशन, लॉगिन, आदि)
 
 app.listen(3000, () => {
     console.log('सर्वर 3000 पर चल रहा है');

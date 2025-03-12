@@ -1,13 +1,11 @@
 function showLogin() {
     document.getElementById('register').style.display = 'none';
     document.getElementById('login').style.display = 'block';
-    document.getElementById('two-factor-setup').style.display = 'none';
 }
 
 function showRegister() {
     document.getElementById('register').style.display = 'block';
     document.getElementById('login').style.display = 'none';
-    document.getElementById('two-factor-setup').style.display = 'none';
 }
 
 async function register() {
@@ -39,7 +37,6 @@ async function register() {
 async function login() {
     const phone = document.getElementById('login-phone').value;
     const password = document.getElementById('login-password').value;
-    const twoFactorCode = document.getElementById('two-factor-code').value;
     const error = document.getElementById('login-error');
 
     if (!phone || !password) {
@@ -50,7 +47,7 @@ async function login() {
     const response = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password, twoFactorCode })
+        body: JSON.stringify({ phone, password })
     });
     const data = await response.json();
 
@@ -59,17 +56,5 @@ async function login() {
         window.location.href = '/dashboard.html';
     } else {
         error.textContent = data.message;
-    }
-}
-
-async function show2FASetup() {
-    document.getElementById('register').style.display = 'none';
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('two-factor-setup').style.display = 'block';
-
-    const response = await fetch('/api/generate-2fa');
-    const data = await response.json();
-    if (response.ok) {
-        document.getElementById('qr-code').src = data.qrCode;
     }
 }

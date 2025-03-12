@@ -11,7 +11,6 @@
         <h1>डैशबोर्ड</h1>
         <p>फोन नंबर: <span id="phone"></span></p>
         <p>कमीशन लेवल: 25, 15, 10, 5, 4, 3, 2, 1 रुपये</p>
-        <p>2FA स्थिति: <span id="two-factor-status">बंद</span></p>
 
         <div id="activation" style="display: none;">
             <p><a href="https://upilinks.in/payment-link/upi2039309601#google_vignette" target="_blank">100 रुपये देकर ID एक्टिवेट करें</a></p>
@@ -50,7 +49,6 @@
             const data = await response.json();
             if (response.ok) {
                 document.getElementById('phone').textContent = data.phone;
-                document.getElementById('two-factor-status').textContent = data.twoFactorEnabled ? 'चालू' : 'बंद';
                 if (data.activated) {
                     document.getElementById('dashboard-info').style.display = 'block';
                     document.getElementById('wallet-balance').textContent = data.walletBalance;
