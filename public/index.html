@@ -22,9 +22,17 @@
             <h1>लॉगिन करें</h1>
             <input type="text" id="login-phone" placeholder="फोन नंबर">
             <input type="password" id="login-password" placeholder="पासवर्ड">
+            <input type="text" id="two-factor-code" placeholder="2FA कोड (अगर चालू है)">
             <button onclick="login()">लॉगिन करें</button>
             <p id="login-error" style="color: red;"></p>
             <p>अकाउंट नहीं है? <a href="#" onclick="showRegister()">रजिस्टर करें</a></p>
+        </div>
+
+        <div id="two-factor-setup" style="display: none;">
+            <h1>2FA सेटअप करें</h1>
+            <p>Google Authenticator ऐप से इस QR कोड को स्कैन करें:</p>
+            <img id="qr-code" src="">
+            <button onclick="window.location.href='/dashboard.html'">डैशबोर्ड पर जाएँ</button>
         </div>
     </div>
 
